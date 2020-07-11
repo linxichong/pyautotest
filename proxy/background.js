@@ -4,7 +4,7 @@ var config = {
     singleProxy: {
       scheme: "http",
       host: "代理主机名",
-      port: 端口
+      port: 8080
     },
     bypassList: ["不通过代理的地址"]
   }
@@ -18,7 +18,7 @@ chrome.proxy.settings.set({
 function callbackFn(details) {
   return {
     authCredentials: {
-      username: '用户名',
+      username: "用户名",
       password: "密码"
     }
   };
