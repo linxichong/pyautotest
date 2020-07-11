@@ -1,0 +1,49 @@
+{
+  "打开简书": {
+    "type": "open",
+    "targeturl": "https://www.jianshu.com/",
+    "option": { "type": "wait", "params": 5}
+  },
+  "添加cookie": {
+    "type": "cache",
+    "cachekey": "remember_user_token",
+    "itemval": "输入账户登陆后的token值",
+    "option": ["refresh", {
+      "type": "wait",
+      "params": 5
+    }, {
+      "type": "screenshot",
+      "params": [
+        [
+          { "xpath":"tag=nav", "display_page":"first"},
+          { "xpath":"class=side-tool", "display_page":"last"}
+        ],
+        "True"
+      ]
+    }]
+  },
+  "循环点击文章列表": {
+    "type": "for",
+    "findmethod": "CSS_SELECTOR",
+    "target": "#list-container>ul.note-list>li>div.content>a.title",
+    "flow": {
+      "打开文章": {
+        "type": "click",
+        "option": {
+          "type": "switch",
+          "params": "new"
+        }
+      },
+      "文章点赞": {
+        "type": "click",
+        "findmethod": "CLASS_NAME",
+        "target": "_2VdqdF",
+        "index": 0,
+        "option": {
+          "type": "switch",
+          "params": "origin"
+        }
+      }
+    }
+  }
+}
