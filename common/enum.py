@@ -88,6 +88,8 @@ class OptionProp(Enum):
     Switch = 'switch'
     # 是否截屏
     ScreenShot = 'screenshot'
+    # 是否滚动
+    ScrollTo = 'scrollto'
 
 
 """ 异常信息 """

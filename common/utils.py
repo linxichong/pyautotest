@@ -70,6 +70,8 @@ def do_flow(driver, flowdata):
         if t == FlowNodeType.Open.value:
             # 获取目标网站网址
             target_url = get_item(flowdata, FlowNodeProp.TargetURL.value)
+            # 如果存在常量值执行替换
+            target_url = const.get_const_val(target_url)
             driver.get(target_url)
         # 流程-处理读取数据文件
         elif t == FlowNodeType.Read.value:
@@ -189,7 +191,8 @@ def do_flow(driver, flowdata):
             else:
                 source = driver
             for i in range(count):
-                ActionChains(source).send_keys(Keys.__dict__[itemval]).perform()
+                source.send_keys(Keys.__dict__[itemval])
+                # ActionChains(source).send_keys(Keys.__dict__[itemval]).perform()
         # 获取节点可选操作配置
         option = flowdata.get(FlowNodeProp.Option.value)
         if option:

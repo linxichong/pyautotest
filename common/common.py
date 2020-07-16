@@ -13,9 +13,7 @@ import random
 import uuid
 
 
-def get_screenshot(driver,
-                   elements=None,
-                   is_load_at_runtime=False):
+def get_screenshot(driver, elements=None, is_load_at_runtime=False):
     ob = Screenshot()
     ob.full_Screenshot(driver,
                        save_path=r'./pic/',
@@ -46,6 +44,10 @@ def handle_option(driver, option):
             driver.close()
         elif option == OptionProp.ScreenShot.value:
             get_screenshot(driver)
+        elif option == OptionProp.ScrollTo.value:
+            page_height = driver.execute_script(
+                "return document.body.scrollHeight")
+            driver.execute_script("window.scrollTo(0, {})".format(page_height))
     # 处理带参数命令
     elif isinstance(option, dict):
         opt_type = option['type']
@@ -59,6 +61,8 @@ def handle_option(driver, option):
                 get_screenshot(driver,
                                elements=params[0],
                                is_load_at_runtime=params[1])
+        elif opt_type == OptionProp.ScrollTo.value:
+            driver.execute_script("window.scrollTo(0, {})".format(params))
     # 处理多条命令
     elif isinstance(option, list):
         for item in option:
@@ -89,7 +93,7 @@ def handle_click(driver, flowdata):
     # 获取节点类型
     t = get_item(flowdata, FlowNodeProp.Type.value)
     # 处理点击操作时，默认先定位到元素，避免因为遮挡出现点击失效
-    driver.execute_script("arguments[0].scrollIntoView(false);", element)
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", element)
     time.sleep(1)
 
     # 处理单击
