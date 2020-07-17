@@ -6,8 +6,7 @@ from threading import current_thread
 def logit(func):
     @wraps(func)
     def with_logging(*args, **kwargs):
-        t = current_thread()
-        msg = t.getName() + ' ' + str(args[1])
+        msg = str(args[1])
         logger.info(msg)
         return func(*args, **kwargs)
     return with_logging

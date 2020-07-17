@@ -28,6 +28,8 @@ def create_driver(browser, useproxy):
     # chrome
     elif browser == BrowserType.Chrome.value:
         chrome_options = webdriver.ChromeOptions()
+        # 取消显示DevTools listening on ws://127.0.0.1...提示
+        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
         # 是否加载代理
         if useproxy:
             chrome_options.add_extension("proxy.zip")
