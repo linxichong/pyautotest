@@ -101,4 +101,3 @@ class Messages:
     Start_Flow = '流程「%s」执行开始。'
     End_Flow = '流程「%s」执行结束。'
     Not_Null = '%s不能为空。'
-    Success_Message = '指定流程执行成功终了！'

@@ -11,7 +11,6 @@ xcopy .\flowdata .\dist\flowdata\ /e /y
 xcopy .\mockdata .\dist\mockdata\ /e /y
 xcopy .\proxy .\dist\proxy\ /e /y
 copy autotest.yaml .\dist\
-copy logger.yaml .\dist\
 copy const.yaml .\dist\
 copy README.md .\dist\
 copy proxy.zip .\dist\
