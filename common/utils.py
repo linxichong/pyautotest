@@ -18,7 +18,7 @@ from common import logger, const
 from common.decorator import logit, doprocess
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-import uuid
+import csv
 
 # 创建浏览器启动实例
 def create_driver(browser, useproxy):
@@ -28,6 +28,10 @@ def create_driver(browser, useproxy):
     # chrome
     elif browser == BrowserType.Chrome.value:
         chrome_options = webdriver.ChromeOptions()
+        # PROXY = '113.121.77.137:9999'
+        # # PROXY_AUTH = '{userid}:{password}'
+        # chrome_options.add_argument('--proxy-server=http://%s' % PROXY)
+        # option.add_argument('--proxy-auth=%s' % PROXY_AUTH)
         # 取消显示DevTools listening on ws://127.0.0.1...提示
         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
         # 是否加载代理
@@ -70,8 +74,12 @@ def do_flow(driver, flowdata):
         t = flowdata.get(FlowNodeProp.Type.value)
         # 流程-打开目标网址
         if t == FlowNodeType.Open.value:
-            # 获取目标网站网址
-            target_url = get_item(flowdata, FlowNodeProp.TargetURL.value)
+            param = flowdata.get(FlowNodeProp.Params.value)
+            if param:
+                target_url = param
+            else:
+                # 获取目标网站网址
+                target_url = get_item(flowdata, FlowNodeProp.TargetURL.value)
             # 如果存在常量值执行替换
             target_url = const.get_const_val(target_url)
             driver.get(target_url)
@@ -168,6 +176,12 @@ def do_flow(driver, flowdata):
                 # 循环指定索引范围
                 for idx in range(int(startIdx), int(endIdx) + 1):
                     handle_for_childflow(driver, child_flows, idx)
+            elif FlowNodeProp.TargetURL.value in flowdata:
+                # 读取文件路径
+                target_url = get_item(flowdata, FlowNodeProp.TargetURL.value)
+                with open(target_url) as csvfile:
+                    for row in csv.reader(csvfile):
+                        handle_for_childflow(driver, child_flows, row[0])
             else:
                 # 获取目标元素列表
                 elements = get_elements_by_flow(driver, flowdata)

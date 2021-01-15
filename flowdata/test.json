@@ -1,0 +1,12 @@
+{
+  "打开": {
+    "type": "for",
+    "targeturl": "C:\\wukai\\test.csv",
+    "flow": {
+      "打开文章": {
+        "type": "open",
+        "option": { "type": "wait", "params": 5}
+      }
+    }
+  }
+}
