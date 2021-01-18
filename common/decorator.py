@@ -16,8 +16,8 @@ def doprocess(func):
     def do_func(*args, **kwargs):
         driver = args[0]
         flowdata = args[1]
-
-        driver.implicitly_wait(10)
+        # 隐式wait和显示wait不能共存
+        # driver.implicitly_wait(10)
         # 处理当前流程节点
         retval = func(*args, **kwargs)
         # 当前节点配置doafter时，完成其对应的操作

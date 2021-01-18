@@ -72,11 +72,11 @@ def run(params, brower_type):
 
     if path:
         # 创建执行浏览器驱动实例
-        driver = create_driver(brower_type, use_proxy)
-        # 窗口最大化
-        driver.maximize_window()
-        # 具体执行
-        do_one_flow(driver, path)
+        with create_driver(brower_type, use_proxy) as driver:
+            # 窗口最大化
+            driver.maximize_window()
+            # 具体执行
+            do_one_flow(driver, path)
 
 
 # 获取浏览器类型
