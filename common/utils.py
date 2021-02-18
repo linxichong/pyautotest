@@ -11,7 +11,6 @@ from common.enum import BrowserType, FlowNodeType, FlowNodeProp, Messages
 import pyperclip
 from types import MethodType, FunctionType
 import copy
-import pyautogui
 import random
 from common.common import get_item, recursive_set_data, handle_click, get_element_by_flow, open_file, repalce_dynamic_val, set_element_val, repalce_const_val, handle_option, get_elements_by_flow
 from common import logger, const
@@ -19,6 +18,7 @@ from common.decorator import logit, doprocess
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import csv
+import requests
 
 # 创建浏览器启动实例
 def create_driver(browser, useproxy):
@@ -30,7 +30,7 @@ def create_driver(browser, useproxy):
         chrome_options = webdriver.ChromeOptions()
         # PROXY = '113.121.77.137:9999'
         # # PROXY_AUTH = '{userid}:{password}'
-        # chrome_options.add_argument('--proxy-server=http://%s' % PROXY)
+        # chrome_options.add_argument('--proxy-server=http://%s' % get_proxy_ip())
         # option.add_argument('--proxy-auth=%s' % PROXY_AUTH)
         # 取消显示DevTools listening on ws://127.0.0.1...提示
         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
@@ -42,6 +42,25 @@ def create_driver(browser, useproxy):
             chrome_options=chrome_options)
 
     return driver
+
+def get_proxy_ip():
+    """
+    docstring
+    """
+    def validate_proxy_ip(proxy):
+        proxy_temp = {"http": proxy}
+        url = "http://ip.chinaz.com/getip.aspx"
+        try:
+            response = requests.get(url, proxies=proxy_temp, timeout=30)
+            return True
+        except Exception as e:
+            return False
+    r = requests.get('http://api.goubanjia.com/dynamic/get/2cd8629e9aa43572094aef407a64903d.html?sep=4')
+    ip = r.text.strip()
+    if validate_proxy_ip(ip):
+        return ip
+    return None
+
 
 
 def get_flow_items(flowdata_path):

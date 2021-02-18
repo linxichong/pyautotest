@@ -1,5 +1,5 @@
 import PySimpleGUI as sg
-from common.utils import get_flow_items, do_one_flow, create_driver
+from common.utils import get_flow_items, do_one_flow, create_driver, get_proxy_ip
 from view import config
 from threading import Thread
 from common.widgetlogger import WidgetLogger
@@ -60,7 +60,7 @@ def get_logs():
 
 # 按钮区UI定义
 def get_buttons():
-    return [sg.Button('执行', key='run'), sg.Button('刷新', key='refresh')]
+    return [sg.Button('执行', key='run'), sg.Button('刷新', key='refresh'), sg.Button('test', key='test')]
 
 
 # 执行选中的流程文件方法
@@ -117,6 +117,9 @@ while True:
         params = [selected_val, use_proxy]
         t = Thread(target=run, args=(params, brower_type))
         t.start()
+    # 处理执行事件
+    elif event == 'test':
+       print(get_proxy_ip())
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
 
