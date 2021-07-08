@@ -65,7 +65,7 @@ def get_proxy_ip():
 
 def get_flow_items(flowdata_path):
     flows = {}
-    for root, dirs, files in os.walk(flowdata_path, topdown=False):
+    for root, _, files in os.walk(flowdata_path, topdown=False):
         if 'hidden' in root:
             continue
         for name in files:

@@ -3,7 +3,7 @@ import yaml
 
 class Const:
     def __init__(self):
-        with open('const.yaml', encoding='utf-8') as const_cfg:
+        with open('const.yml', encoding='utf-8') as const_cfg:
             self.values = yaml.load(const_cfg, Loader=yaml.SafeLoader)
 
     def get_const_val(self, val):
