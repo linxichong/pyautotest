@@ -11,14 +11,15 @@ from common.enum import BrowserType, FlowNodeType, FlowNodeProp, Messages
 import pyperclip
 from types import MethodType, FunctionType
 import copy
+import pyautogui
 import random
-from common.common import get_item, recursive_set_data, handle_click, get_element_by_flow, open_file, repalce_dynamic_val, set_element_val, repalce_const_val, handle_option, get_elements_by_flow
+from common.common import get_item, handle_option_yml, open_file_yml, recursive_set_data, handle_click, get_element_by_flow, open_file, repalce_dynamic_val, set_element_val, repalce_const_val, handle_option, get_elements_by_flow
 from common import logger, const
 from common.decorator import logit, doprocess
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import csv
-import requests
+from webdriver_manager.chrome import ChromeDriverManager
 
 # 创建浏览器启动实例
 def create_driver(browser, useproxy):
@@ -30,7 +31,7 @@ def create_driver(browser, useproxy):
         chrome_options = webdriver.ChromeOptions()
         # PROXY = '113.121.77.137:9999'
         # # PROXY_AUTH = '{userid}:{password}'
-        # chrome_options.add_argument('--proxy-server=http://%s' % get_proxy_ip())
+        # chrome_options.add_argument('--proxy-server=http://%s' % PROXY)
         # option.add_argument('--proxy-auth=%s' % PROXY_AUTH)
         # 取消显示DevTools listening on ws://127.0.0.1...提示
         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
@@ -42,25 +43,6 @@ def create_driver(browser, useproxy):
             chrome_options=chrome_options)
 
     return driver
-
-def get_proxy_ip():
-    """
-    docstring
-    """
-    def validate_proxy_ip(proxy):
-        proxy_temp = {"http": proxy}
-        url = "http://ip.chinaz.com/getip.aspx"
-        try:
-            response = requests.get(url, proxies=proxy_temp, timeout=30)
-            return True
-        except Exception as e:
-            return False
-    r = requests.get('http://api.goubanjia.com/dynamic/get/2cd8629e9aa43572094aef407a64903d.html?sep=4')
-    ip = r.text.strip()
-    if validate_proxy_ip(ip):
-        return ip
-    return None
-
 
 
 def get_flow_items(flowdata_path):
@@ -74,25 +56,20 @@ def get_flow_items(flowdata_path):
             flows[name] = os.path.join(root, name)
     return flows
 
-def do_one_flow(driver, path):
+def handle_yml_file(driver, filename, path):
     try:
-        with open(path, encoding='utf-8') as f:
-            filename = f.name
         logger.info(Messages.Start_Flow % filename)
-        open_file(driver, path, do_flow)
+        open_file_yml(driver, path, do_flow_yml)
         logger.info(Messages.End_Flow % filename)
     except Exception as e:
         logger.error(Messages.Flow_Handle_Failed % e)
 
-
 @logit
 @doprocess
-def do_flow(driver, flowdata):
+def do_flow_yml(driver, type, flowdata):
     if flowdata:
-        # 获取流程节点类型
-        t = flowdata.get(FlowNodeProp.Type.value)
         # 流程-打开目标网址
-        if t == FlowNodeType.Open.value:
+        if type == FlowNodeType.Open.value:
             param = flowdata.get(FlowNodeProp.Params.value)
             if param:
                 target_url = param
@@ -103,7 +80,7 @@ def do_flow(driver, flowdata):
             target_url = const.get_const_val(target_url)
             driver.get(target_url)
         # 流程-处理读取数据文件
-        elif t == FlowNodeType.Read.value:
+        elif type == FlowNodeType.Read.value:
             # 读取方式
             findmethod = get_item(flowdata, FlowNodeProp.FindMethod.value)
             # 读取文件路径
@@ -117,10 +94,10 @@ def do_flow(driver, flowdata):
                 mock_data = const.repalce_const_val(mock_data)
                 recursive_set_data(driver, By.__dict__[findmethod], mock_data)
         # 流程-处理单击
-        elif t == FlowNodeType.Click.value or t == FlowNodeType.DbClick.value:
-            handle_click(driver, flowdata, t)
+        elif type == FlowNodeType.Click.value or type == FlowNodeType.DbClick.value:
+            handle_click(driver, flowdata, type)
         # 流程-处理弹出框
-        elif t == FlowNodeType.Alert.value:
+        elif type == FlowNodeType.Alert.value:
             # 等待弹出框出现
             wait = WebDriverWait(driver, 10)
             wait.until(EC.alert_is_present())
@@ -129,7 +106,7 @@ def do_flow(driver, flowdata):
             # 弹出框确认（默认执行弹出框确认操作）
             alert.accept()
         # 流程-剪切板操作(复制)
-        elif t == FlowNodeType.Copy.value:
+        elif type == FlowNodeType.Copy.value:
             if flowdata.get(FlowNodeProp.FindMethod.value) != None:
                 # 获取目标元素
                 element = get_element_by_flow(driver, flowdata)
@@ -145,7 +122,7 @@ def do_flow(driver, flowdata):
             # 复制到ClipBoard
             pyperclip.copy(copy_val)
         # 流程-剪切板操作(粘贴)
-        elif t == FlowNodeType.Paste.value:
+        elif type == FlowNodeType.Paste.value:
             # 获取目标元素
             element = get_element_by_flow(driver, flowdata)
             # 复制到ClipBoard
@@ -156,7 +133,7 @@ def do_flow(driver, flowdata):
                 val = const.get_const_val(setval)
                 element.send_keys(val)
         # 流程-添加缓存值
-        elif t == FlowNodeType.Cache.value:
+        elif type == FlowNodeType.Cache.value:
             # 获取想要设置的缓存值
             val = get_item(flowdata, FlowNodeProp.ItemVal.value)
             if isinstance(val, str):
@@ -170,7 +147,7 @@ def do_flow(driver, flowdata):
             # 添加浏览器缓存
             driver.add_cookie({'name': cachekey, 'value': setval})
         # 流程-画面要素設定
-        elif t == FlowNodeType.SetVal.value:
+        elif type == FlowNodeType.SetVal.value:
             # 如果存在常量值优先替换
             flowdata = repalce_const_val(flowdata)
             # 获取动态生成的项目設定値
@@ -184,7 +161,7 @@ def do_flow(driver, flowdata):
             # 指定元素设置缓存值
             set_element_val(driver, By.__dict__[findmethod], itemval, target)
         # 流程-循环操作
-        elif t == FlowNodeType.For.value:
+        elif type == FlowNodeType.For.value:
             # 子操作流程节点集合
             child_flows = get_item(flowdata, FlowNodeProp.Flow.value)
             if FlowNodeProp.StartIdx.value in flowdata and FlowNodeProp.EndIdx.value in flowdata:
@@ -208,13 +185,13 @@ def do_flow(driver, flowdata):
                 for element in elements:
                     handle_for_childflow(driver, child_flows, element)
         # 流程-加载既存流程文件
-        elif t == FlowNodeType.FlowFile.value:
+        elif type == FlowNodeType.FlowFile.value:
             # 读取文件路径
             file_url = get_item(flowdata, FlowNodeProp.TargetURL.value)
             param = flowdata.get(FlowNodeProp.Params.value)
-            open_file(driver, file_url, do_flow, param)
+            open_file(driver, file_url, do_flow_yml, param)
         # 流程-鼠标键盘操作
-        elif t == FlowNodeType.KeyBoard.value:
+        elif type == FlowNodeType.KeyBoard.value:
             # 读取鼠标键盘操作
             itemval = get_item(flowdata, FlowNodeProp.ItemVal.value)
             # 获取操作次数
@@ -232,7 +209,7 @@ def do_flow(driver, flowdata):
         option = flowdata.get(FlowNodeProp.Option.value)
         if option:
             # 处理可选操作
-            handle_option(driver, option)
+            handle_option_yml(driver, option)
 
 
 """ 处理循环中的子节点 """
@@ -247,4 +224,4 @@ def handle_for_childflow(driver, child_flows, params):
         temp_childflow = copy.copy(source_childflow)
         temp_childflow[FlowNodeProp.Params.value] = params
         # 处理子流程节点
-        do_flow(driver, temp_childflow)
+        do_flow_yml(driver, temp_childflow)

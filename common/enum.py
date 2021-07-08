@@ -73,6 +73,10 @@ class FlowNodeProp(Enum):
     Option = 'option'
     # 当前节点子流程
     Flow = 'flow'
+    # 截屏时，不包括的页面元素
+    Excludes = 'excludes'
+    # 是否截全屏
+    FullScreen = 'fullscreen'
 
 """ 可选执行操作 """
 

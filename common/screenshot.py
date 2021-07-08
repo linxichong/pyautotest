@@ -16,7 +16,7 @@ class Screenshot:
                         driver: WebDriver,
                         save_path: str = '',
                         image_name: str = 'selenium_full_screenshot.png',
-                        elements: list = None,
+                        elements: list = [],
                         is_load_at_runtime: bool = False,
                         load_wait_time: int = 5):
 

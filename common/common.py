@@ -1,3 +1,4 @@
+import yaml
 from common.enum import Messages, FlowNodeProp, FlowNodeType, OptionProp
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,7 +14,7 @@ import random
 import uuid
 
 
-def get_screenshot(driver, elements=None, is_load_at_runtime=False):
+def get_screenshot(driver, elements=[], is_load_at_runtime=False):
     ob = Screenshot()
     ob.full_Screenshot(driver,
                        save_path=r'./pic/',
@@ -72,7 +73,7 @@ def handle_option(driver, option):
 """ 处理点击操作 """
 
 
-def handle_click(driver, flowdata):
+def handle_click(driver, flowdata, type=FlowNodeType.Click.value):
     # 点击次数（默认为1）
     count = flowdata.get(FlowNodeProp.Count.value, 1)
     element = None
@@ -91,18 +92,18 @@ def handle_click(driver, flowdata):
             element = params
 
     # 获取节点类型
-    t = get_item(flowdata, FlowNodeProp.Type.value)
+    # t = get_item(flowdata, FlowNodeProp.Type.value)
     # 处理点击操作时，默认先定位到元素，避免因为遮挡出现点击失效
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", element)
     time.sleep(1)
 
     # 处理单击
-    if t == FlowNodeType.Click.value:
+    if type == FlowNodeType.Click.value:
         # 操作
         for i in range(count):
             element.click()
     # 处理双击
-    elif t == FlowNodeType.DbClick.value:
+    elif type == FlowNodeType.DbClick.value:
         action = ActionChains(driver)
         action.double_click(element).perform()
 
@@ -216,6 +217,15 @@ def open_file(driver, file_url, do_flow, param=None):
                 obj[FlowNodeProp.Params.value] = param
             do_flow(driver, obj)
 
+def open_file_yml(driver, file_url, do_flow_yml, param=None):
+    with open(file_url, encoding='utf-8') as f:
+        flow_data = yaml.load(f, Loader=yaml.SafeLoader)
+        for type in flow_data:
+            obj = flow_data[type]
+            if param:
+                obj[FlowNodeProp.Params.value] = param
+            do_flow_yml(driver, type, obj)
+
 
 """ 获取动态参数生成的项目值 """
 
@@ -288,3 +298,38 @@ def swtich_window(driver, switch_type):
             driver.close()
             # 控制句柄切换回主窗口
             driver.switch_to_window(original_window)
+
+""" 处理可选操作 """
+
+
+def handle_option_yml(driver, option):
+    # 处理无参数命令
+    if isinstance(option, str):
+        if option == OptionProp.Refresh.value:
+            driver.refresh()
+        elif option == OptionProp.Close.value:
+            driver.close()
+        elif option == OptionProp.ScreenShot.value:
+            get_screenshot(driver)
+        elif option == OptionProp.ScrollTo.value:
+            page_height = driver.execute_script(
+                "return document.body.scrollHeight")
+            driver.execute_script("window.scrollTo(0, {})".format(page_height))
+    # 处理带参数命令
+    elif isinstance(option, dict):
+        if OptionProp.Wait.value in option:
+            time.sleep(option[OptionProp.Wait.value])
+        elif OptionProp.Switch.value in option:
+            swtich_window(driver, option[OptionProp.Switch.value])
+        elif OptionProp.ScreenShot.value in option:
+            params = option[OptionProp.ScreenShot.value]
+            if params:
+                get_screenshot(driver,
+                               elements=params[FlowNodeProp.Excludes.value],
+                               is_load_at_runtime=params[FlowNodeProp.FullScreen.value])
+        elif OptionProp.ScrollTo.value in option:
+            driver.execute_script("window.scrollTo(0, {})".format(option[OptionProp.Switch.value]))
+    # 处理多条命令
+    elif isinstance(option, list):
+        for item in option:
+            handle_option_yml(driver, item)

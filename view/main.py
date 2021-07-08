@@ -1,3 +1,4 @@
+from common.utils_yml import handle_yml_file
 import PySimpleGUI as sg
 from common.utils import get_flow_items, do_one_flow, create_driver, get_proxy_ip
 from view import config
@@ -75,8 +76,12 @@ def run(params, brower_type):
         with create_driver(brower_type, use_proxy) as driver:
             # 窗口最大化
             driver.maximize_window()
-            # 具体执行
-            do_one_flow(driver, path)
+            if path.endswith('.json'):
+                # 具体执行
+                do_one_flow(driver, path)
+            else:
+                # 具体执行
+                handle_yml_file(driver, selected_val, path)
 
 
 # 获取浏览器类型
