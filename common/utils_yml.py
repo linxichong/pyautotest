@@ -11,38 +11,37 @@ from common.enum import BrowserType, FlowNodeType, FlowNodeProp, Messages
 import pyperclip
 from types import MethodType, FunctionType
 import copy
-import pyautogui
 import random
-from common.common import get_item, handle_option_yml, open_file_yml, recursive_set_data, handle_click, get_element_by_flow, open_file, repalce_dynamic_val, set_element_val, repalce_const_val, handle_option, get_elements_by_flow
+from common.common import get_item, handle_option_yml, read_flowdata, recursive_set_data, handle_click, get_element_by_flow, open_file, repalce_dynamic_val, set_element_val, repalce_const_val, handle_option, get_elements_by_flow
 from common import logger, const
-from common.decorator import logit, doprocess
+from common.decorator import logit, doprocess, lognode
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import csv
 from webdriver_manager.chrome import ChromeDriverManager
 
-# 创建浏览器启动实例
-def create_driver(browser, useproxy):
-    # ie
-    if browser == BrowserType.IE.value:
-        driver = webdriver.Ie(executable_path=r"./drivers/IEDriverServer.exe")
-    # chrome
-    elif browser == BrowserType.Chrome.value:
-        chrome_options = webdriver.ChromeOptions()
-        # PROXY = '113.121.77.137:9999'
-        # # PROXY_AUTH = '{userid}:{password}'
-        # chrome_options.add_argument('--proxy-server=http://%s' % PROXY)
-        # option.add_argument('--proxy-auth=%s' % PROXY_AUTH)
-        # 取消显示DevTools listening on ws://127.0.0.1...提示
-        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        # 是否加载代理
-        if useproxy:
-            chrome_options.add_extension("proxy.zip")
-        driver = webdriver.Chrome(
-            executable_path=r"./drivers/chromedriver.exe",
-            chrome_options=chrome_options)
+# # 创建浏览器启动实例
+# def create_driver(browser, useproxy):
+#     # ie
+#     if browser == BrowserType.IE.value:
+#         driver = webdriver.Ie(executable_path=r"./drivers/IEDriverServer.exe")
+#     # chrome
+#     elif browser == BrowserType.Chrome.value:
+#         chrome_options = webdriver.ChromeOptions()
+#         # PROXY = '113.121.77.137:9999'
+#         # # PROXY_AUTH = '{userid}:{password}'
+#         # chrome_options.add_argument('--proxy-server=http://%s' % PROXY)
+#         # option.add_argument('--proxy-auth=%s' % PROXY_AUTH)
+#         # 取消显示DevTools listening on ws://127.0.0.1...提示
+#         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+#         # 是否加载代理
+#         if useproxy:
+#             chrome_options.add_extension("proxy.zip")
+#         driver = webdriver.Chrome(
+#             executable_path=r"./drivers/chromedriver.exe",
+#             chrome_options=chrome_options)
 
-    return driver
+#     return driver
 
 
 def get_flow_items(flowdata_path):
@@ -56,17 +55,17 @@ def get_flow_items(flowdata_path):
             flows[name] = os.path.join(root, name)
     return flows
 
-def handle_yml_file(driver, filename, path):
+def exec_flowdata(driver, filename, path):
     try:
         logger.info(Messages.Start_Flow % filename)
-        open_file_yml(driver, path, do_flow_yml)
+        read_flowdata(driver, path, exec_flow_node)
         logger.info(Messages.End_Flow % filename)
     except Exception as e:
         logger.error(Messages.Flow_Handle_Failed % e)
 
-@logit
+@lognode
 @doprocess
-def do_flow_yml(driver, type, flowdata):
+def exec_flow_node(driver, type, flowdata):
     if flowdata:
         # 流程-打开目标网址
         if type == FlowNodeType.Open.value:
@@ -189,7 +188,7 @@ def do_flow_yml(driver, type, flowdata):
             # 读取文件路径
             file_url = get_item(flowdata, FlowNodeProp.TargetURL.value)
             param = flowdata.get(FlowNodeProp.Params.value)
-            open_file(driver, file_url, do_flow_yml, param)
+            read_flowdata(driver, file_url, exec_flow_node, param)
         # 流程-鼠标键盘操作
         elif type == FlowNodeType.KeyBoard.value:
             # 读取鼠标键盘操作
@@ -224,4 +223,4 @@ def handle_for_childflow(driver, child_flows, params):
         temp_childflow = copy.copy(source_childflow)
         temp_childflow[FlowNodeProp.Params.value] = params
         # 处理子流程节点
-        do_flow_yml(driver, temp_childflow)
+        exec_flow_node(driver, flow, temp_childflow)

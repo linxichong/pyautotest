@@ -5,7 +5,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import os
 import json
-import time
 from selenium.webdriver.common.alert import Alert
 from common.enum import BrowserType, FlowNodeType, FlowNodeProp, Messages
 import pyperclip
@@ -13,18 +12,29 @@ from types import MethodType, FunctionType
 import copy
 import random
 from common.common import get_item, recursive_set_data, handle_click, get_element_by_flow, open_file, repalce_dynamic_val, set_element_val, repalce_const_val, handle_option, get_elements_by_flow
-from common import logger, const
+from common import logger, const, appconfig
 from common.decorator import logit, doprocess
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import csv
 import requests
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.microsoft import IEDriverManager
+
+# 流程文件所在文件夹
+FLOWDATA_PATH = appconfig.settings['flowdata_path']
+# 内网环境使用代理配置
+PROXY_ON = appconfig.system['proxy_on']
+
 
 # 创建浏览器启动实例
-def create_driver(browser, useproxy):
+
+
+def create_driver(browser):
     # ie
     if browser == BrowserType.IE.value:
-        driver = webdriver.Ie(executable_path=r"./drivers/IEDriverServer.exe")
+        driver = webdriver.Ie(IEDriverManager().install())
+        # driver = webdriver.Ie(executable_path=r"./drivers/IEDriverServer.exe")
     # chrome
     elif browser == BrowserType.Chrome.value:
         chrome_options = webdriver.ChromeOptions()
@@ -33,15 +43,19 @@ def create_driver(browser, useproxy):
         # chrome_options.add_argument('--proxy-server=http://%s' % get_proxy_ip())
         # option.add_argument('--proxy-auth=%s' % PROXY_AUTH)
         # 取消显示DevTools listening on ws://127.0.0.1...提示
-        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        chrome_options.add_experimental_option(
+            'excludeSwitches', ['enable-logging'])
         # 是否加载代理
-        if useproxy:
+        if PROXY_ON == 'on':
             chrome_options.add_extension("proxy.zip")
+        # driver = webdriver.Chrome(
+        #     executable_path=r"./drivers/chromedriver.exe",
+        #     chrome_options=chrome_options)
         driver = webdriver.Chrome(
-            executable_path=r"./drivers/chromedriver.exe",
-            chrome_options=chrome_options)
+            ChromeDriverManager().install(), chrome_options=chrome_options)
 
     return driver
+
 
 def get_proxy_ip():
     """
@@ -55,24 +69,27 @@ def get_proxy_ip():
             return True
         except Exception as e:
             return False
-    r = requests.get('http://api.goubanjia.com/dynamic/get/2cd8629e9aa43572094aef407a64903d.html?sep=4')
+    r = requests.get(
+        'http://api.goubanjia.com/dynamic/get/2cd8629e9aa43572094aef407a64903d.html?sep=4')
     ip = r.text.strip()
     if validate_proxy_ip(ip):
         return ip
     return None
 
 
-
-def get_flow_items(flowdata_path):
+def get_flowdatas():
     flows = {}
-    for root, _, files in os.walk(flowdata_path, topdown=False):
+    for root, _, files in os.walk(FLOWDATA_PATH, topdown=False):
+        # hidden文件夹不处理
         if 'hidden' in root:
             continue
         for name in files:
+            # cmn开头的文件是公用模板文件
             if name.startswith('cmn_'):
                 continue
             flows[name] = os.path.join(root, name)
     return flows
+
 
 def do_one_flow(driver, path):
     try:

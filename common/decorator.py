@@ -3,11 +3,20 @@ from common import logger
 from common.enum import BrowserType, FlowNodeType, FlowNodeProp, Messages
 from threading import current_thread
  
+#  方法执行前日志记录装饰器
 def logit(func):
     @wraps(func)
     def with_logging(*args, **kwargs):
         msg = str(args[1])
         logger.info(msg)
+        return func(*args, **kwargs)
+    return with_logging
+
+#  节点执行前日志记录装饰器
+def lognode(func):
+    @wraps(func)
+    def with_logging(*args, **kwargs):
+        logger.info((args[1], args[2]))
         return func(*args, **kwargs)
     return with_logging
 

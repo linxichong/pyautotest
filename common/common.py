@@ -217,14 +217,14 @@ def open_file(driver, file_url, do_flow, param=None):
                 obj[FlowNodeProp.Params.value] = param
             do_flow(driver, obj)
 
-def open_file_yml(driver, file_url, do_flow_yml, param=None):
+def read_flowdata(driver, file_url, exec_flow_node, param=None):
     with open(file_url, encoding='utf-8') as f:
         flow_data = yaml.load(f, Loader=yaml.SafeLoader)
         for type in flow_data:
             obj = flow_data[type]
             if param:
                 obj[FlowNodeProp.Params.value] = param
-            do_flow_yml(driver, type, obj)
+            exec_flow_node(driver, type, obj)
 
 
 """ 获取动态参数生成的项目值 """
