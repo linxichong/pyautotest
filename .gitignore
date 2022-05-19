@@ -19,4 +19,6 @@ static
 
 .vscode
 autotest.spec
+flowdata/*
+mockdata/*
 

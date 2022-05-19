@@ -129,11 +129,12 @@
           - ```{"option": { "type": "scrollto", "params": 400} }``` 竖向滚动条滚动到指定位置
     - bat文件说明
       - **run.bat** 执行后会在项目根目录生成dist文件夹，里面包含了项目可执行程序exe等相关文件。执行打包前，请先进入**pipenv**所创建的独立环境后，再请执行命令**pip install pyinstaller**安装对应包。
-      - **zip.bat** 使用windows自带压缩软件，压缩浏览器代理插件用的压缩文件，使用前请先修改**proxy**文件下的代理配置文件**background.js**，直接**cmd**中进入项目目录输入**zip**命令执行。
 
 ### 更新日志
 
   - v1.0.0
+  - v1.1.0 驱动自动下载，流程文件支持yml格式
+  - v1.2.0 代码重构，chrome支持headless模式，selenium升级到4.1.5
 
 ### 版权声明
 

@@ -1,23 +1,26 @@
+import importlib
 from common.utils_yml import exec_flowdata
 import PySimpleGUI as sg
-from common.utils import get_flowdatas, do_one_flow, create_driver, get_proxy_ip
+from common.utils import get_flowdatas, do_one_flow, get_proxy_ip
 from view import config
 from threading import Thread
 from common.widgetlogger import WidgetLogger
 from common import logger, appconfig
+from view.auto_base_driver import AutoBaseDriver
+from view.auto_chrome_driver import AutoChromeDriver
 
 # 获取所有流程文件
 flowdatas = get_flowdatas()
 # 浏览器类型定义
-brower_types = appconfig.settings['brower_type']
+brower_types = appconfig.system['brower_type']
 # 浏览器驱动对象
 driver = None
 # app标题
 TITLE = appconfig.system['app_name']
+# app版本号
+VERSION = appconfig.system['version']
 # 流程文件列表控件名
 FLOWDATA_LST_KEY = 'lstFlowFile'
-# 是否使用内网代理控件名
-# USE_PROXY_KEY = 'cbxUseProxy'
 # 操作日志显示控件
 LOGS_KEY = 'mulLogs'
 
@@ -33,11 +36,6 @@ def get_options():
         if key == config['browser']:
             rdo.InitialState = True
         columns1.append(rdo)
-
-    # cbx = sg.Checkbox('启用代理', key=USE_PROXY_KEY)
-    # if 'on' == config['use_proxy']:
-    #     cbx.InitialState = True
-    # columns2 = [cbx]
 
     options = [sg.Frame('操作选项', [columns1])]
 
@@ -80,16 +78,12 @@ def exec_one(params):
     path = flowdatas[selected_val]
 
     if path:
-        # 创建执行浏览器驱动实例
-        with create_driver(brower_type) as driver:
-            # 窗口最大化
-            driver.maximize_window()
-            if path.endswith('.json'):
-                # 具体执行
-                do_one_flow(driver, path)
-            else:
-                # 具体执行
-                exec_flowdata(driver, selected_val, path)
+        # module_name = f'view.auto_{brower_type}_driver'
+        # module_object = importlib.import_module(module_name)
+        # class_name = f'Auto{brower_type.capitalize()}Driver'
+        # instance: AutoBaseDriver = getattr(module_object, class_name)(path)
+        instance = AutoChromeDriver(path)
+        instance.run()
 
 
 # 获取选中的浏览器类型
@@ -100,7 +94,6 @@ def get_browser_type(values):
 
 def build_params(values):
     selected_val = values[FLOWDATA_LST_KEY][0]
-    # use_proxy = values[USE_PROXY_KEY]
     brower_type = get_browser_type(values)
 
     return selected_val, brower_type
@@ -108,7 +101,7 @@ def build_params(values):
 # UI布局对象
 layout = [get_options(), get_contents(), get_logs(), get_buttons()]
 # 初始化UI窗口
-window = sg.Window(TITLE,
+window = sg.Window(f'{TITLE}{VERSION}',
                    layout,
                    icon='favicon.ico',
                    default_element_size=(40, 1),

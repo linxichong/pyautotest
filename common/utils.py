@@ -22,40 +22,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.microsoft import IEDriverManager
 
 # 流程文件所在文件夹
-FLOWDATA_PATH = appconfig.settings['flowdata_path']
-# 内网环境使用代理配置
-PROXY_ON = appconfig.system['proxy_on']
-
-
-# 创建浏览器启动实例
-
-
-def create_driver(browser):
-    # ie
-    if browser == BrowserType.IE.value:
-        driver = webdriver.Ie(IEDriverManager().install())
-        # driver = webdriver.Ie(executable_path=r"./drivers/IEDriverServer.exe")
-    # chrome
-    elif browser == BrowserType.Chrome.value:
-        chrome_options = webdriver.ChromeOptions()
-        # PROXY = '113.121.77.137:9999'
-        # # PROXY_AUTH = '{userid}:{password}'
-        # chrome_options.add_argument('--proxy-server=http://%s' % get_proxy_ip())
-        # option.add_argument('--proxy-auth=%s' % PROXY_AUTH)
-        # 取消显示DevTools listening on ws://127.0.0.1...提示
-        chrome_options.add_experimental_option(
-            'excludeSwitches', ['enable-logging'])
-        # 是否加载代理
-        if PROXY_ON == 'on':
-            chrome_options.add_extension("proxy.zip")
-        # driver = webdriver.Chrome(
-        #     executable_path=r"./drivers/chromedriver.exe",
-        #     chrome_options=chrome_options)
-        driver = webdriver.Chrome(
-            ChromeDriverManager().install(), chrome_options=chrome_options)
-
-    return driver
-
+FLOWDATA_PATH = appconfig.system['flowdata_path']
 
 def get_proxy_ip():
     """

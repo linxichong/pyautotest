@@ -20,30 +20,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 import csv
 from webdriver_manager.chrome import ChromeDriverManager
 
-# # 创建浏览器启动实例
-# def create_driver(browser, useproxy):
-#     # ie
-#     if browser == BrowserType.IE.value:
-#         driver = webdriver.Ie(executable_path=r"./drivers/IEDriverServer.exe")
-#     # chrome
-#     elif browser == BrowserType.Chrome.value:
-#         chrome_options = webdriver.ChromeOptions()
-#         # PROXY = '113.121.77.137:9999'
-#         # # PROXY_AUTH = '{userid}:{password}'
-#         # chrome_options.add_argument('--proxy-server=http://%s' % PROXY)
-#         # option.add_argument('--proxy-auth=%s' % PROXY_AUTH)
-#         # 取消显示DevTools listening on ws://127.0.0.1...提示
-#         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
-#         # 是否加载代理
-#         if useproxy:
-#             chrome_options.add_extension("proxy.zip")
-#         driver = webdriver.Chrome(
-#             executable_path=r"./drivers/chromedriver.exe",
-#             chrome_options=chrome_options)
-
-#     return driver
-
-
 def get_flow_items(flowdata_path):
     flows = {}
     for root, dirs, files in os.walk(flowdata_path, topdown=False):

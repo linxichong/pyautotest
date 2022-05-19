@@ -1,4 +1,2 @@
 # 欲执行浏览器环境　Chrome | IE
 browser: Chrome
-# 是否使用代理
-use_proxy: 'off'
